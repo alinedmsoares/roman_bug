@@ -1,8 +1,9 @@
 import React from 'react';
-import {Component} from 'react';
+import { Component } from 'react';
 import style from 'react';
-import { StyleSheet, Text, View, FlatList } from "react-native";
+import { StyleSheet, Text, View, FlatList, Picker, TouchableOpacity, TextInput } from "react-native";
 import api from "./src/services/api";
+import jwt from "jwt-decode";
 
 class Projetos extends Component {
     static navigationOptions = {
@@ -17,31 +18,97 @@ class Projetos extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            listaProjetos: []
+            listaProjetos: [],
+            listaTemas: [],
+            fkIdTema: "",
+            nomeProjeto: "",
+            IdUsuario: "",
+            token: ""
         };
     }
     componentDidMount() {
         this.carreagarProjetos();
+        this.carregarProfessores();
+        this.carreagarTemas();
+        this.buscarDados();
     }
+    buscarDados = async() => {
+        try {
+            const value = await AsyncStorage.getItem("userToken");
+            if(value !== null){
+                this.setState({IdUsuario: jwt(value).IdUsuario});
+                this.setState({token: value});
+            }
+        } catch (error){}
+    };
 
     carreagarProjetos = async () => {
         const resposta = await api.get("/projetos");
         const dadosDaApi = resposta.data;
         this.setState({ listaProjetos: dadosDaApi });
     };
+    carregarProfessores = async () => {
+        const resposta = await api.get("/professores");
+        const dadosDaApi= resposta.data;
+        this.setState({listaProfessores:dadosDaApi})
+    };
+    carreagarTemas = async () => {
+        const resposta = await api.get("/temas");
+        const dadosDaApi = resposta.data;
+        this.setState({listaTemas : dadosDaApi})
+    }
+    cadastrarProjeto = async() => {
+        const resposta = await api.post("/projetos", {
+            nomeProjeto: this.state.nomeProjeto,
+            fkIdTema: this.state.fkIdTema,
+            IdUsuario: this.state.IdUsuario
+        },{
+            headers:{
+                'Content-Type': 'application/json',
+                'Authorization' : 'bearer ' + this.state.token
+            }
+        });
+
+        const token = resposta.data.token;
+        await AsyncStorage.setItem('userToken', token);
+        this.props.navigation.navigate("AutorizacaoNavigation")
+    }
 
     render() {
         return (
             <View style={styles.appBody}>
                 <Text style={styles.appText}>Projetos</Text>
                 <View style={styles.appLine}></View>
+                <TextInput
+                    placeholder="Nome: "
+                    onChangeText={nomeProjeto => this.setState({nomeProjeto})}
+                />
+                <Picker
+                    selectedValue={this.state.fkIdTema}
+                    onValueChange={(itemValue, itemIndex) =>
+                        this.setState({fkIdTema: itemValue})
+                    }
+                >
+                {this.state.listaTemas.map((element) => (
+                    <Picker.Item label={element.nomeTema} value={element.idTema}/>
+                ))}
+                </Picker>
+                <TouchableOpacity
+                    onPress={this.cadastrarProjeto}
+                >
+                    <Text>Cadastrar</Text>
+                </TouchableOpacity>
+                <View style={styles.appHeader}>
+                <Text style={styles.appHeaderNome}>Nome</Text>
+                <Text style={styles.appHeaderProfessor}>Professor</Text>
+                <Text style={styles.appHeaderTema}>Tema</Text>
+                </View>
                 <FlatList
                     contentContainerStyle={styles.appTableConteudo}
                     data={this.state.listaProjetos}
                     keyExtractor={item => item.id}
                     renderItem={this.renderizaItem}
                 />
-                <Text style={styles.appHeaderNome}>Nome</Text>
             </View>
         );
     }
@@ -50,10 +117,16 @@ class Projetos extends Component {
             <View style={styles.flatItemContainer}>
                 <Text style={styles.flatItemNome}>{item.nomeProjeto}</Text>
                 <Text style={styles.flatItemProfessor}>{item.nomeProfessor}</Text>
+                {/* <Text style={styles.flatItemTema}>{.nomeTema}</Text> */}
             </View>
         </View>
     )
 }
+renderizaTema = ({tema}) => (
+    <View>
+        <Text>{tema.nomeTema}</Text>
+    </View>
+)
 
 const styles = StyleSheet.create({
     appBody: {
@@ -68,7 +141,7 @@ const styles = StyleSheet.create({
         marginTop: 40,
         marginLeft: 20
     },
-    appLine:{
+    appLine: {
         borderBottomColor: 'white',
         borderBottomWidth: 0.9,
         width: 145,
@@ -78,24 +151,48 @@ const styles = StyleSheet.create({
     appTableConteudo: {
         paddingTop: 30,
         paddingRight: 50,
-        paddingLeft: 50    
+        paddingLeft: 50
     },
     flatItemLinha: {
         flexDirection: "row",
         borderBottomWidth: 0.9,
         borderBottomColor: "gray"
-      },
-      flatItemContainer: {
+    },
+    flatItemContainer: {
         flex: 7,
         marginTop: 5
-      },
-      flatItemNome: {
+    },
+    flatItemNome: {
         fontSize: 15,
         color: "white",
-        fontFamily: "OpenSans-Bold",
+        fontFamily: "OpenSans-Light",
         borderColor: "white",
         borderWidth: 0.9,
         padding: 10
-      }
+    },
+    appHeaderNome: {
+        fontSize: 15,
+        color: "white",
+        marginTop: 4,
+        fontFamily: "OpenSans-Bold",
+    },
+    appHeaderProfessor: {
+        fontSize: 15,
+        color: "white",
+        marginTop: 4,
+        fontFamily: "OpenSans-Bold",
+    },
+    appHeaderTema: {
+        fontSize: 15,
+        color: "white",
+        marginTop: 4,
+        fontFamily: "OpenSans-Bold",
+    },
+    appHeader:{
+        width: 400,
+        flexDirection: "row",
+        justifyContent: "space-evenly",
+        marginTop: 50,
+    }
 });
 export default Projetos;
