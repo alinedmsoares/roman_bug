@@ -19,6 +19,7 @@ class Projetos extends Component {
         super(props);
         this.state = {
             listaProjetos: [],
+            listaProfessores:[],
             listaTemas: [],
             fkIdTema: "",
             nomeProjeto: "",
@@ -116,8 +117,8 @@ class Projetos extends Component {
         <View style={style.flatItemLinha}>
             <View style={styles.flatItemContainer}>
                 <Text style={styles.flatItemNome}>{item.nomeProjeto}</Text>
-                <Text style={styles.flatItemProfessor}>{item.nomeProfessor}</Text>
-                {/* <Text style={styles.flatItemTema}>{.nomeTema}</Text> */}
+                <Text style={styles.flatItemProfessor}>{item.fkIdProfessorNavigation.nomeProfessor}</Text>
+                <Text style={styles.flatItemTema}>{item.fkIdTemaNavigation.nomeTema}</Text>
             </View>
         </View>
     )
@@ -160,15 +161,34 @@ const styles = StyleSheet.create({
     },
     flatItemContainer: {
         flex: 7,
-        marginTop: 5
+        marginTop: 5,
+        borderColor: "white",
+        borderWidth: 0.9,
+        flexDirection: "row",
+        justifyContent: "center",
+        padding: 10
+
     },
     flatItemNome: {
         fontSize: 15,
         color: "white",
         fontFamily: "OpenSans-Light",
-        borderColor: "white",
-        borderWidth: 0.9,
-        padding: 10
+        backgroundColor:"red",
+        margin: 2
+    },
+    flatItemProfessor: {
+        fontSize: 15,
+        color: "white",
+        fontFamily: "OpenSans-Light",
+        backgroundColor:"red"
+
+    },
+    flatItemTema: {
+        fontSize: 15,
+        color: "white",
+        fontFamily: "OpenSans-Light",
+        backgroundColor:"red"
+
     },
     appHeaderNome: {
         fontSize: 15,
