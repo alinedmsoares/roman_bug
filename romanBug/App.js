@@ -2,24 +2,16 @@ import React from 'react';
 import { Component } from 'react';
 import style from 'react';
 import { StyleSheet, Text, View, FlatList, Picker, TouchableOpacity, TextInput } from "react-native";
-import api from "./src/services/api";
+import api from "../romanBug/src/services/api";
 import jwt from "jwt-decode";
 
 class Projetos extends Component {
-    static navigationOptions = {
-        // tabBarIcon: ({ tintColor }) => (
-        //     <Image
-        //         source={require("../assets/img/icon_home.png")}
-        //         style={StyleSheet.tabNavigatorIconHome}
-        //     />
-        // )
-    };
 
     constructor(props) {
         super(props);
         this.state = {
             listaProjetos: [],
-            listaProfessores:[],
+            listaProfessores: [],
             listaTemas: [],
             fkIdTema: "",
             nomeProjeto: "",
@@ -33,14 +25,14 @@ class Projetos extends Component {
         this.carreagarTemas();
         this.buscarDados();
     }
-    buscarDados = async() => {
+    buscarDados = async () => {
         try {
             const value = await AsyncStorage.getItem("userToken");
-            if(value !== null){
-                this.setState({IdUsuario: jwt(value).IdUsuario});
-                this.setState({token: value});
+            if (value !== null) {
+                this.setState({ IdUsuario: jwt(value).IdUsuario });
+                this.setState({ token: value });
             }
-        } catch (error){}
+        } catch (error) { }
     };
 
     carreagarProjetos = async () => {
@@ -50,29 +42,28 @@ class Projetos extends Component {
     };
     carregarProfessores = async () => {
         const resposta = await api.get("/professores");
-        const dadosDaApi= resposta.data;
-        this.setState({listaProfessores:dadosDaApi})
+        const dadosDaApi = resposta.data;
+        this.setState({ listaProfessores: dadosDaApi })
     };
     carreagarTemas = async () => {
         const resposta = await api.get("/temas");
         const dadosDaApi = resposta.data;
-        this.setState({listaTemas : dadosDaApi})
+        this.setState({ listaTemas: dadosDaApi })
     }
-    cadastrarProjeto = async() => {
+    cadastrarProjeto = async () => {
         const resposta = await api.post("/projetos", {
             nomeProjeto: this.state.nomeProjeto,
             fkIdTema: this.state.fkIdTema,
             IdUsuario: this.state.IdUsuario
-        },{
-            headers:{
-                'Content-Type': 'application/json',
-                'Authorization' : 'bearer ' + this.state.token
-            }
-        });
+        }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'bearer ' + AsyncStorage.getItem("userToken")
+                }
+            });
 
         const token = resposta.data.token;
         await AsyncStorage.setItem('userToken', token);
-        this.props.navigation.navigate("AutorizacaoNavigation")
     }
 
     render() {
@@ -80,29 +71,38 @@ class Projetos extends Component {
             <View style={styles.appBody}>
                 <Text style={styles.appText}>Projetos</Text>
                 <View style={styles.appLine}></View>
+                <View style={styles.appCadastro}>
                 <TextInput
-                    placeholder="Nome: "
-                    onChangeText={nomeProjeto => this.setState({nomeProjeto})}
+                    placeholder="Nome"
+                    placeholderTextColor="white"
+                    onChangeText={nomeProjeto => this.setState({ nomeProjeto })}
+                    style={styles.appInputNome}
                 />
+                <View style={styles.appPicker}>
                 <Picker
                     selectedValue={this.state.fkIdTema}
                     onValueChange={(itemValue, itemIndex) =>
-                        this.setState({fkIdTema: itemValue})
+                        this.setState({ fkIdTema: itemValue })
                     }
+
+
                 >
-                {this.state.listaTemas.map((element) => (
-                    <Picker.Item label={element.nomeTema} value={element.idTema}/>
-                ))}
+                    {this.state.listaTemas.map((element) => (
+                        <Picker.Item label={element.nomeTema} value={element.idTema}
+                                                         />
+                    ))}
                 </Picker>
+                </View>
+                </View>
                 <TouchableOpacity
                     onPress={this.cadastrarProjeto}
                 >
-                    <Text>Cadastrar</Text>
+                    <Text style={styles.appCadastrarText}>Cadastrar</Text>
                 </TouchableOpacity>
                 <View style={styles.appHeader}>
-                <Text style={styles.appHeaderNome}>Nome</Text>
-                <Text style={styles.appHeaderProfessor}>Professor</Text>
-                <Text style={styles.appHeaderTema}>Tema</Text>
+                    <Text style={styles.appHeaderNome}>Nome</Text>
+                    <Text style={styles.appHeaderProfessor}>Professor</Text>
+                    <Text style={styles.appHeaderTema}>Tema</Text>
                 </View>
                 <FlatList
                     contentContainerStyle={styles.appTableConteudo}
@@ -123,7 +123,7 @@ class Projetos extends Component {
         </View>
     )
 }
-renderizaTema = ({tema}) => (
+renderizaTema = ({ tema }) => (
     <View>
         <Text>{tema.nomeTema}</Text>
     </View>
@@ -165,30 +165,24 @@ const styles = StyleSheet.create({
         borderColor: "white",
         borderWidth: 0.9,
         flexDirection: "row",
-        justifyContent: "center",
-        padding: 10
+        justifyContent: "space-between",
+        padding: 10,
 
     },
     flatItemNome: {
         fontSize: 15,
         color: "white",
         fontFamily: "OpenSans-Light",
-        backgroundColor:"red",
-        margin: 2
     },
     flatItemProfessor: {
         fontSize: 15,
         color: "white",
         fontFamily: "OpenSans-Light",
-        backgroundColor:"red"
-
     },
     flatItemTema: {
         fontSize: 15,
         color: "white",
         fontFamily: "OpenSans-Light",
-        backgroundColor:"red"
-
     },
     appHeaderNome: {
         fontSize: 15,
@@ -208,11 +202,37 @@ const styles = StyleSheet.create({
         marginTop: 4,
         fontFamily: "OpenSans-Bold",
     },
-    appHeader:{
+    appHeader: {
         width: 400,
         flexDirection: "row",
         justifyContent: "space-evenly",
         marginTop: 50,
+    },
+    appInputNome: {
+        borderColor: "white",
+        borderWidth: 0.9,
+        width: 120,
+        fontSize: 18
+    },
+    appPicker:{
+        borderColor: "white",
+        borderWidth: 0.9,
+        width: 120
+    },
+    appCadastro:{
+        flexDirection:'row',
+        justifyContent:'space-evenly',
+        marginTop: 40
+
+
+    },
+    appCadastrarText: {
+        color: "#FFFFFF",
+        fontSize: 18,
+        borderColor: "white",
+        borderWidth: 0.9,
+        width: 120
     }
+
 });
 export default Projetos;

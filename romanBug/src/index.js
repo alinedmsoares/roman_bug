@@ -5,15 +5,17 @@ import {
     createSwitchNavigator
 } from "react-navigation";
 
-import Projetos from "./pages/projetos";
-import Swipeable from "react-native-gesture-handler/Swipeable";
+import App from "../App";
+import Login from "../src/pages/login";
+
+const AuthStack = createStackNavigator({Login});
 
 const ProjetosNavigator = createBottomTabNavigator(
     {
-        Projetos
+        App
     },
     {
-        initialRouteName: "Main",
+        initialRouteName: "App",
         swipeEnabled: true,
         tabBarOptions: {
             showLabel: false,
@@ -28,4 +30,16 @@ const ProjetosNavigator = createBottomTabNavigator(
         }
     }
 );
+
+export default createAppContainer(
+    createSwitchNavigator(
+        {
+            ProjetosNavigator,
+            AuthStack
+        },
+        {
+            initialRouteName: "AuthStack"
+        }
+    )
+)
 

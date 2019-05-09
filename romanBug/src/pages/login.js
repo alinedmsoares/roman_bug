@@ -1,6 +1,6 @@
 import React, {Component} from "react";
-import api from "./src/services/api";
-import {View, AsyncStorage, TextInput, Image, Text, TouchableOpacity} from "react-native";
+import api from "../services/api";
+import {View, AsyncStorage, TextInput, Image, Text, TouchableOpacity, StyleSheet} from "react-native";
 
 class Login extends Component{
     static navigationOptions = {
@@ -13,38 +13,94 @@ class Login extends Component{
     }
 
     realizarLogin = async () => {
-        const resposta = await api.post("/login",{
+        const resposta = await api.post("/login", {
             emailUsuario: this.state.emailUsuario,
             senhaUsuario: this.state.senhaUsuario
         });
 
         const token = resposta.data.token;
         await AsyncStorage.setItem("userToken", token);
-        this.props.navigation.navigate("MainNavigator");
+        this.props.navigation.navigate("ProjetosNavigator");
     };
 
     render(){
         return(
-            <View>
-                <Image 
-                    source={require("./src/assets/img/icon_user.png")}
+            <View style={styles.appBody}
+            colors={['#448AFF', '#9E9E9E', '#FFEB3B', '#FF5722']}
+            >
+                <Image style={styles.loginImg}
+                    source={require("../assets/img/icon_user.png")}
                 />
-                <TextInput
+                <Text style={styles.loginRoman}>Roman</Text>
+                <TextInput style={styles.loginEmail}
+                    underlineColorAndroid="#FFFFFF"
+                    placeholderTextColor="white"
                     placeholder="Email: "
                     onChangeText={emailUsuario => this.setState({emailUsuario})}
                 />
-                <TextInput
+                <TextInput style={styles.loginSenha}
+                    underlineColorAndroid="#FFFFFF"
+                    placeholderTextColor="white"
                     placeholder="Senha: "
                     onChangeText={senhaUsuario => this.setState({senhaUsuario})}
                 />
                 <TouchableOpacity
+                style={styles.loginEntrar}
                     onPress={this.realizarLogin}
                 >
-                    <Text>Login</Text>
+                    <Text style={styles.loginLoginText}>Entrar</Text>
                 </TouchableOpacity>
-
             </View>
         )
     }
 }
+const styles = StyleSheet.create({
+    appBody: {
+        backgroundColor: "#532DA6",
+        alignItems: "center",
+        flex: 1,
+        padding: 40,
+    },
+    loginImg: {
+        borderColor: "#FFFFFF",
+        borderWidth: 1 ,
+        borderRadius: 400,
+        width: 200,
+        height: 200,
+    },
+    loginEmail: {
+        margin: 8,
+        fontSize: 18,
+        width: 250
+    },
+    loginSenha: { 
+        textDecorationColor: "#FFFFFF",
+        margin: 8,
+        fontSize: 18,
+        width: 250
+    },
+    loginEntrar: {
+        borderColor: "#FFFFFF",
+        borderWidth: 1 ,
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: 10,
+        width: 200,
+        margin: 15,
+        fontSize: 40,
+        height: 45
+    },
+    loginRoman: {
+        color: "#FFFFFF",
+        margin: 10,
+        fontSize: 40
+
+    },
+    loginLoginText: {
+        color: "#FFFFFF",
+        fontSize: 28,
+        
+    }
+
+});
 export default Login;
