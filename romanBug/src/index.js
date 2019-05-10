@@ -21,7 +21,7 @@ const ProjetosNavigator = createBottomTabNavigator(
             showLabel: false,
             showIcon: true,
             inactiveBackgroundColor: "#dd99ff",
-            activeBackgroundColor: "#B727FF",
+            activeBackgroundColor: "#1D0E3F",
             activeTintColor: "#FFFFFF",
             inactiveTintColor: "#FFFFFF",
             style: {

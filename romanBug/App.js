@@ -1,7 +1,7 @@
 import React from 'react';
 import { Component } from 'react';
 import style from 'react';
-import { StyleSheet, Text, View, FlatList, Picker, TouchableOpacity, TextInput } from "react-native";
+import { StyleSheet, Text, View, FlatList, Picker, TouchableOpacity, TextInput, AsyncStorage, Alert } from "react-native";
 import api from "../romanBug/src/services/api";
 import jwt from "jwt-decode";
 
@@ -14,17 +14,31 @@ class Projetos extends Component {
             listaProfessores: [],
             listaTemas: [],
             fkIdTema: "",
+            fkIdProfessor: "",
             nomeProjeto: "",
             IdUsuario: "",
             token: ""
         };
-    }
+    };
+
+
     componentDidMount() {
-        this.carreagarProjetos();
-        this.carregarProfessores();
-        this.carreagarTemas();
-        this.buscarDados();
+        this.carregaToken();
+
+    };
+
+    carregaToken = async () => {
+        await AsyncStorage.getItem("userToken").then((token) => {
+            this.setState({ token: token }, () => {
+                this.carreagarProjetos();
+                this.carregarProfessores();
+                this.carreagarTemas();
+                this.buscarDados();
+            });
+
+        });
     }
+
     buscarDados = async () => {
         try {
             const value = await AsyncStorage.getItem("userToken");
@@ -36,35 +50,58 @@ class Projetos extends Component {
     };
 
     carreagarProjetos = async () => {
-        const resposta = await api.get("/projetos");
+        const usertoken = this.state.token;
+        const resposta = await api.get("/projetos", {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'bearer ' + usertoken
+            }
+        });
         const dadosDaApi = resposta.data;
         this.setState({ listaProjetos: dadosDaApi });
     };
+
     carregarProfessores = async () => {
-        const resposta = await api.get("/professores");
+        const usertoken = this.state.token;
+        const resposta = await api.get("/professores",
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'bearer ' + usertoken
+                }
+            });
         const dadosDaApi = resposta.data;
-        this.setState({ listaProfessores: dadosDaApi })
+        this.setState({ listaProfessores: dadosDaApi });
     };
+
     carreagarTemas = async () => {
-        const resposta = await api.get("/temas");
+        const usertoken = this.state.token;
+        const resposta = await api.get("/temas",
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'bearer ' + usertoken
+                }
+            });
         const dadosDaApi = resposta.data;
-        this.setState({ listaTemas: dadosDaApi })
-    }
+        this.setState({ listaTemas: dadosDaApi });
+    };
+
     cadastrarProjeto = async () => {
+        const usertoken = this.state.token;
         const resposta = await api.post("/projetos", {
             nomeProjeto: this.state.nomeProjeto,
             fkIdTema: this.state.fkIdTema,
-            IdUsuario: this.state.IdUsuario
+            fkIdProfessor: this.state.fkIdProfessor
         }, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'bearer ' + AsyncStorage.getItem("userToken")
+                    'Authorization': 'bearer ' + usertoken
                 }
             });
+    };
 
-        const token = resposta.data.token;
-        await AsyncStorage.setItem('userToken', token);
-    }
+
 
     render() {
         return (
@@ -72,33 +109,51 @@ class Projetos extends Component {
                 <Text style={styles.appText}>Projetos</Text>
                 <View style={styles.appLine}></View>
                 <View style={styles.appCadastro}>
-                <TextInput
-                    placeholder="Nome"
-                    placeholderTextColor="white"
-                    onChangeText={nomeProjeto => this.setState({ nomeProjeto })}
-                    style={styles.appInputNome}
-                />
-                <View style={styles.appPicker}>
-                <Picker
-                    selectedValue={this.state.fkIdTema}
-                    onValueChange={(itemValue, itemIndex) =>
-                        this.setState({ fkIdTema: itemValue })
-                    }
+                    <View style={styles.appCadastro1}>
+                        <TextInput
+                            placeholder="Nome"
+                            placeholderTextColor="white"
+                            onChangeText={nomeProjeto => this.setState({ nomeProjeto })}
+                            style={styles.appInputNome}
+                        />
+                        <View style={styles.appPicker}>
+                            <Picker
+                                placeholder="Nome"
+                                placeholderTextColor="white"
+                                selectedValue={this.state.fkIdTema}
+                                onValueChange={(itemValue, itemIndex) =>
+                                    this.setState({ fkIdTema: itemValue })
+                                }
+                            >
+                                {this.state.listaTemas.map((element) => (
+                                    <Picker.Item label={element.nomeTema} value={element.idTema}
+                                    />
+                                ))}
+                            </Picker>
+                        </View>
+                    </View>
+                    <View style={styles.appCadastro2}>
+                        <View style={styles.appPicker}>
 
-
-                >
-                    {this.state.listaTemas.map((element) => (
-                        <Picker.Item label={element.nomeTema} value={element.idTema}
-                                                         />
-                    ))}
-                </Picker>
+                            <Picker
+                                selectedValue={this.state.fkIdProfessor}
+                                onValueChange={(itemValue, itemIndex) =>
+                                    this.setState({ fkIdProfessor: itemValue })
+                                }
+                            >
+                                {this.state.listaProfessores.map((element) => (
+                                    <Picker.Item label={element.nomeProfessor} value={element.idProfessor}
+                                    />
+                                ))}
+                            </Picker>
+                        </View>
+                        <TouchableOpacity
+                            onPress={this.cadastrarProjeto}
+                        >
+                            <Text style={styles.appCadastrarText}>Cadastrar</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-                </View>
-                <TouchableOpacity
-                    onPress={this.cadastrarProjeto}
-                >
-                    <Text style={styles.appCadastrarText}>Cadastrar</Text>
-                </TouchableOpacity>
                 <View style={styles.appHeader}>
                     <Text style={styles.appHeaderNome}>Nome</Text>
                     <Text style={styles.appHeaderProfessor}>Professor</Text>
@@ -132,10 +187,10 @@ renderizaTema = ({ tema }) => (
 const styles = StyleSheet.create({
     appBody: {
         flex: 1,
-        backgroundColor: '#532DA6',
+        backgroundColor: '#311964',
     },
     appText: {
-        color: 'white',
+        color: '#BEB2D7',
         fontFamily: "OpenSans-Light",
         letterSpacing: 2,
         fontSize: 35,
@@ -143,7 +198,7 @@ const styles = StyleSheet.create({
         marginLeft: 20
     },
     appLine: {
-        borderBottomColor: 'white',
+        borderBottomColor: '#BEB2D7',
         borderBottomWidth: 0.9,
         width: 145,
         marginTop: 2,
@@ -157,12 +212,12 @@ const styles = StyleSheet.create({
     flatItemLinha: {
         flexDirection: "row",
         borderBottomWidth: 0.9,
-        borderBottomColor: "gray"
+        borderBottomColor: "#BEB2D7"
     },
     flatItemContainer: {
         flex: 7,
         marginTop: 5,
-        borderColor: "white",
+        borderColor: "#BEB2D7",
         borderWidth: 0.9,
         flexDirection: "row",
         justifyContent: "space-between",
@@ -171,17 +226,17 @@ const styles = StyleSheet.create({
     },
     flatItemNome: {
         fontSize: 15,
-        color: "white",
+        color: "#BEB2D7",
         fontFamily: "OpenSans-Light",
     },
     flatItemProfessor: {
         fontSize: 15,
-        color: "white",
+        color: "#BEB2D7",
         fontFamily: "OpenSans-Light",
     },
     flatItemTema: {
         fontSize: 15,
-        color: "white",
+        color: "#BEB2D7",
         fontFamily: "OpenSans-Light",
     },
     appHeaderNome: {
@@ -209,30 +264,36 @@ const styles = StyleSheet.create({
         marginTop: 50,
     },
     appInputNome: {
-        borderColor: "white",
+        borderColor: "#BEB2D7",
         borderWidth: 0.9,
-        width: 120,
-        fontSize: 18
-    },
-    appPicker:{
-        borderColor: "white",
-        borderWidth: 0.9,
-        width: 120
-    },
-    appCadastro:{
-        flexDirection:'row',
-        justifyContent:'space-evenly',
-        marginTop: 40
+        width: 140,
+        fontSize: 18,
+        marginTop: 10
 
+    },
+    appPicker: {
+        borderColor: "white",
+        borderWidth: 0.9,
+        width: 140,
+        marginTop: 10
+    },
+    appCadastro: {
+        flexDirection: 'row',
+        justifyContent: 'space-evenly',
+        marginTop: 40,
 
     },
     appCadastrarText: {
         color: "#FFFFFF",
         fontSize: 18,
-        borderColor: "white",
-        borderWidth: 0.9,
-        width: 120
-    }
+        fontWeight: 'bold',
+        height: 50,
+        width: 140,
+        padding: 12,
+        backgroundColor: "#1D0E3F",
+        marginTop: 10
+    },
+
 
 });
 export default Projetos;

@@ -37,11 +37,12 @@ class Login extends Component{
                     placeholderTextColor="white"
                     placeholder="Email: "
                     onChangeText={emailUsuario => this.setState({emailUsuario})}
-                />
+                /> 
                 <TextInput style={styles.loginSenha}
                     underlineColorAndroid="#FFFFFF"
                     placeholderTextColor="white"
                     placeholder="Senha: "
+                    secureTextEntry={true}
                     onChangeText={senhaUsuario => this.setState({senhaUsuario})}
                 />
                 <TouchableOpacity
@@ -56,13 +57,13 @@ class Login extends Component{
 }
 const styles = StyleSheet.create({
     appBody: {
-        backgroundColor: "#532DA6",
+        backgroundColor: "#311964",
         alignItems: "center",
         flex: 1,
         padding: 40,
     },
     loginImg: {
-        borderColor: "#FFFFFF",
+        borderColor: "#BEB2D7",
         borderWidth: 1 ,
         borderRadius: 400,
         width: 200,
@@ -71,16 +72,19 @@ const styles = StyleSheet.create({
     loginEmail: {
         margin: 8,
         fontSize: 18,
-        width: 250
+        width: 250,
+        color: "white"
     },
     loginSenha: { 
-        textDecorationColor: "#FFFFFF",
+        textDecorationColor: "#BEB2D7",
         margin: 8,
         fontSize: 18,
-        width: 250
+        width: 250,
+        color: "white"
+
     },
     loginEntrar: {
-        borderColor: "#FFFFFF",
+        borderColor: "#BEB2D7",
         borderWidth: 1 ,
         justifyContent: "center",
         alignItems: "center",
@@ -91,13 +95,13 @@ const styles = StyleSheet.create({
         height: 45
     },
     loginRoman: {
-        color: "#FFFFFF",
+        color: "#BEB2D7",
         margin: 10,
         fontSize: 40
 
     },
     loginLoginText: {
-        color: "#FFFFFF",
+        color: "#BEB2D7",
         fontSize: 28,
         
     }
